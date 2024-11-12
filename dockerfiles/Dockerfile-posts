@@ -1,0 +1,15 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY scripts/posts /app
+
+RUN groupadd -g 1000 mygroup && \
+    useradd -u 1000 -g mygroup -m myuser && \
+    pip install --no-cache-dir -r /app/requirements.txt && \
+    chown -R myuser:mygroup /app && \
+    chmod +x /app/posts.py
+
+USER myuser
+
+CMD ["python", "posts.py"]

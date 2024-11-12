@@ -1,0 +1,19 @@
+FROM node:16-alpine
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1001
+
+WORKDIR /usr/src/app
+
+COPY server/package.json server/package-lock.json ./
+
+RUN npm install --frozen-lockfile
+
+COPY server ./
+
+RUN chown -R appuser:appgroup /usr/src/app
+
+EXPOSE 5050
+
+USER appuser
+
+CMD ["npm", "start"]

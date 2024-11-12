@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-export-import-job
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-mongo
+          image: busybox
+          command: ["sh", "-c", "until nc -z mongodb-service 27017; do echo 'Waiting for MongoDB...'; sleep 2; done;"]
+      containers:
+      - name: mongo-export-import
+        image: import-image:1.0
+        env:
+        - name: MONGO_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_USER_USERNAME
+        - name: MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_USER_PASSWORD
+        - name: MONGO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: mongodb-config
+              key: MONGO_HOST
+        - name: TARGET_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: mongodb-config
+              key: MONGO_DATABASE
+        - name: MONGO_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: mongodb-config
+              key: MONGO_PORT
+        - name: ATLAS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_ATLAS_USERNAME
+        - name: ATLAS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_ATLAS_PASSWORD
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+      restartPolicy: Never
+  backoffLimit: 4

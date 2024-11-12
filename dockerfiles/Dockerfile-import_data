@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY scripts/import_data /app
+
+RUN groupadd -g 1000 mygroup && \
+    useradd -u 1000 -g mygroup -m myuser && \
+    pip install --no-cache-dir -r /app/requirements.txt && \
+    chown -R myuser:mygroup /app && \
+    chmod +x /app/import_data.py
+
+USER myuser
+
+CMD ["python", "import_data.py"]
